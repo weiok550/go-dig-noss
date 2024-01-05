@@ -3,7 +3,7 @@ Description=noss-mint and keep alive
 After=network.target
 
 [Service]
-ExecStart=/root/go-mint-noss/nostr
+ExecStart=/root/go-mint-noss/keeprun.sh
 Restart=always
 RestartSec=3
 

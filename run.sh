@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo cp nostr-keepalive-centos.service /etc/systemd/system/
+sudo cp noss-mint.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
 

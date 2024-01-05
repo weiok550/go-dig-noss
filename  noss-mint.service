@@ -1,5 +1,5 @@
 [Unit]
-Description=noss-mint
+Description=noss-mint and keep alive
 After=network.target
 
 [Service]

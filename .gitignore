@@ -1,7 +1,2 @@
-*.exe
 .env
-*.7z
-nostr
-main.go1
-go-noss.7z
-go-noss.zip
+.vscode

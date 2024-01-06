@@ -1,3 +1,2 @@
 #!/bin/bash
-
-/root/go-mint-noss/nostr > /root/go-mint-noss/mint-noss.log 2>&1 &
+nohup ./nostr >> mint-noss.log 2>&1 &

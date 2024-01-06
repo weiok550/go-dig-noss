@@ -7,7 +7,6 @@ import (
 
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -38,7 +37,6 @@ var (
 )
 
 func init() {
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -71,12 +69,12 @@ func Generate(event nostr.Event, targetDifficulty int) (nostr.Event, error) {
 	for {
 		nonce, err := generateRandomString(10)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 		tag[1] = nonce
 		event.CreatedAt = nostr.Now()
 		if nip13.Difficulty(event.GetID()) >= targetDifficulty {
-			// fmt.Print(time.Since(start))
+			// log.Print(time.Since(start))
 			return event, nil
 		}
 		if time.Since(start) >= 1*time.Second {
@@ -133,7 +131,7 @@ func mine(ctx context.Context, messageId string, client *ethclient.Client) {
 			evCopy := ev
 			evCopy, err := Generate(evCopy, difficulty)
 			if err != nil {
-				// fmt.Println(err)
+				// log.Println(err)
 				notFound <- evCopy
 			}
 			foundEvent <- evCopy
@@ -171,7 +169,7 @@ func mine(ctx context.Context, messageId string, client *ethclient.Client) {
 		}
 
 		url := "https://api-worker.noscription.org/inscribe/postEvent"
-		// fmt.Print(bytes.NewBuffer(wrapperJSON))
+		// log.Print(bytes.NewBuffer(wrapperJSON))
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(wrapperJSON)) // 修改了弱智项目方不识别美化Json的bug
 		if err != nil {
 			log.Fatalf("Error creating request: %v", err)
@@ -195,13 +193,13 @@ func mine(ctx context.Context, messageId string, client *ethclient.Client) {
 		}
 		defer resp.Body.Close()
 
-		fmt.Println("Response Status:", resp.Status)
+		log.Println("Response Status:", resp.Status)
 		spendTime := time.Since(startTime)
-		// fmt.Println("Response Body:", string(body))
-		fmt.Println(nostr.Now().Time(), "spend: ", spendTime, "!!!!!!!!!!!!!!!!!!!!!published to:", evNew.ID)
+		// log.Println("Response Body:", string(body))
+		log.Println(nostr.Now().Time(), "spend: ", spendTime, "!!!!!!!!!!!!!!!!!!!!!published to:", evNew.ID)
 		atomic.StoreInt32(&nonceFound, 0)
 	case <-ctx.Done():
-		fmt.Print("done")
+		log.Print("done")
 	}
 
 }
@@ -216,10 +214,10 @@ func connectToWSS(url string) (*websocket.Conn, error) {
 	for {
 		// 使用gorilla/websocket库建立连接
 		conn, _, err = websocket.DefaultDialer.Dial(url, headers)
-		fmt.Println("Connecting to wss")
+		log.Println("Connecting to wss")
 		if err != nil {
 			// 连接失败，打印错误并等待一段时间后重试
-			fmt.Println("Error connecting to WebSocket:", err)
+			log.Println("Error connecting to WebSocket:", err)
 			// time.Sleep(1 * time.Second) // 5秒重试间隔
 			continue
 		}
@@ -230,12 +228,18 @@ func connectToWSS(url string) (*websocket.Conn, error) {
 }
 
 func main() {
+	var err error
+	// 设置日志输出到文件
+	logFile, err := os.OpenFile("noss-mint.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Println(err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
 
 	wssAddr := "wss://report-worker-2.noscription.org"
 	// relayUrl := "wss://relay.noscription.org/"
 	ctx := context.Background()
-
-	var err error
 
 	client, err := ethclient.Dial(arbRpcUrl)
 	if err != nil {
@@ -274,7 +278,7 @@ func main() {
 
 			var messageDecode Message
 			if err := json.Unmarshal(message, &messageDecode); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			messageId.Store(messageDecode.EventId)

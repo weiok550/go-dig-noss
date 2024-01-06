@@ -230,7 +230,7 @@ func connectToWSS(url string) (*websocket.Conn, error) {
 func main() {
 	var err error
 	// 设置日志输出到文件
-	logFile, err := os.OpenFile("noss-mint.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("/usr/local/noss/noss-mint.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}

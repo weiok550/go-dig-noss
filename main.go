@@ -165,14 +165,16 @@ func mine(ctx context.Context, messageId string, client *ethclient.Client) {
 		// 将包装后的对象序列化成JSON
 		wrapperJSON, err := json.Marshal(wrapper)
 		if err != nil {
-			log.Fatalf("Error marshaling wrapper: %v", err)
+			log.Printf("Error marshaling wrapper: %v", err)
+			break
 		}
 
 		url := "https://api-worker.noscription.org/inscribe/postEvent"
 		// log.Print(bytes.NewBuffer(wrapperJSON))
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(wrapperJSON)) // 修改了弱智项目方不识别美化Json的bug
 		if err != nil {
-			log.Fatalf("Error creating request: %v", err)
+			log.Printf("Error creating request: %v", err)
+			break
 		}
 
 		// 设置HTTP Header
@@ -189,7 +191,8 @@ func mine(ctx context.Context, messageId string, client *ethclient.Client) {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Fatalf("Error sending request: %v", err)
+			log.Printf("Error sending request: %v", err)
+			break
 		}
 		defer resp.Body.Close()
 
@@ -218,7 +221,7 @@ func connectToWSS(url string) (*websocket.Conn, error) {
 		if err != nil {
 			// 连接失败，打印错误并等待一段时间后重试
 			log.Println("Error connecting to WebSocket:", err)
-			// time.Sleep(1 * time.Second) // 5秒重试间隔
+			time.Sleep(1 * time.Second) // 1秒重试间隔
 			continue
 		}
 		// 连接成功，退出循环
@@ -230,7 +233,8 @@ func connectToWSS(url string) (*websocket.Conn, error) {
 func main() {
 	var err error
 	// 设置日志输出到文件
-	logFile, err := os.OpenFile("/usr/local/noss/noss-mint.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("noss-mint.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// logFile, err := os.OpenFile("/usr/local/noss/noss-mint.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
@@ -259,7 +263,9 @@ func main() {
 		for {
 			header, err := client.HeaderByNumber(context.Background(), nil)
 			if err != nil {
-				log.Fatalf("无法获取最新区块号: %v", err)
+				log.Printf("无法获取最新区块号: %v", err)
+				time.Sleep(2 * time.Second) // 2秒重试间隔
+				continue
 			}
 			if header.Number.Uint64() >= blockNumber {
 				hash.Store(header.Hash().Hex())

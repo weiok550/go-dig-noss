@@ -264,7 +264,7 @@ func main() {
 			header, err := client.HeaderByNumber(context.Background(), nil)
 			if err != nil {
 				log.Printf("无法获取最新区块号: %v", err)
-				time.Sleep(2 * time.Second) // 2秒重试间隔
+				time.Sleep(1 * time.Second) // 1秒重试间隔
 				continue
 			}
 			if header.Number.Uint64() >= blockNumber {
